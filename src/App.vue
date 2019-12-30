@@ -1,5 +1,13 @@
 <template>
-  <div id="app" :style="{'background': 'url('+ back_img +') no-repeat center center'}">
+  <div id="app">
+    <transition name="fade">
+      <div style="z-index:-99999999;" v-if="back_show">
+        <div
+          class="back_img_box"
+          :style="{'background': 'url('+ back_img +') no-repeat center center'}"
+        ></div>
+      </div>
+    </transition>
     <div class="header">
       <img class="Logo" src="./assets/logo.png" height="100%" alt="Logo" />
       <div id="nav">
@@ -24,20 +32,40 @@
           </div>
           <div class="song-album">{{ album }}</div>
         </div>
-        <div class="playtime">{{ playtime }} / {{ allplaytime }}</div>
-        <div class="player_ctrl_bnt">
-          <font-awesome-icon @click="play_up()" :icon="['fas','chevron-circle-left']" size="3x" />
-          <font-awesome-icon
-            ref="playbnt"
-            @click="play_toggle()"
-            :icon="['fas',this.statusico]"
-            size="3x"
-          />
-          <font-awesome-icon @click="play_next()" :icon="['fas','chevron-circle-right']" size="3x" />
+        <div class="playtime">
+          <div class="od_bnt">
+            <el-tooltip class="item" effect="dark" content="收藏" placement="top-start">
+              <font-awesome-icon @click="share()" :icon="['far','heart']" size="1x" />
+            </el-tooltip>
+            <el-tooltip class="item" effect="dark" content="分享" placement="top-start">
+              <font-awesome-icon @click="share()" :icon="['fas','share']" size="1x" />
+            </el-tooltip>
+            <el-tooltip class="item" effect="dark" content="设置" placement="top-start">
+              <font-awesome-icon @click="settings()" :icon="['fas','cog']" size="1x" />
+            </el-tooltip>
+          </div>
+          {{ playtime }} / {{ allplaytime }}
         </div>
-        <!-- <div class="od_bnt">
-          <font-awesome-icon @click="play_up()" :icon="['fas','share']" size="2x" />
-        </div>-->
+        <div class="player_ctrl_bnt">
+          <el-tooltip class="item" effect="dark" content="上一首" placement="top-start">
+            <font-awesome-icon @click="play_up()" :icon="['fas','chevron-left']" size="3x" />
+          </el-tooltip>
+          <el-tooltip class="item" effect="dark" :content="this.statustips" placement="top-start">
+            <font-awesome-icon
+              ref="playbnt"
+              @click="play_toggle()"
+              :icon="['far',this.statusico]"
+              size="3x"
+            />
+          </el-tooltip>
+          <el-tooltip class="item" effect="dark" content="下一首" placement="top-start">
+            <font-awesome-icon
+              @click="play_next()"
+              :icon="['fas','chevron-right']"
+              size="3x"
+            />
+          </el-tooltip>
+        </div>
       </div>
     </div>
   </div>
@@ -49,6 +77,7 @@ export default {
   name: "app",
   data() {
     return {
+      back_show: false,
       cover_img: "/img/JLOGO.png",
       back_img: "",
       audio_src: "",
@@ -60,7 +89,8 @@ export default {
       album: "未知",
       playtime: "NaN:NaN",
       allplaytime: "NaN:NaN",
-      thisid: ""
+      thisid: "",
+      statustips: "播放"
     };
   },
   created() {},
@@ -80,6 +110,7 @@ export default {
           this.thisid = res.data.res.id;
           // eslint-disable-next-line no-console
           console.log("ID: " + res.data.res.id);
+          setTimeout(this.back_show = true, 1300);
         }
       });
     },
@@ -117,12 +148,16 @@ export default {
       this.allplaytime = this.aret;
       if (this.$refs.audio.ended) {
         this.statusico = "play-circle";
+        this.statustips = "播放";
         this.getMusicdata();
+        setTimeout(this.back_show = false, 1300);
       }
       if (this.$refs.audio.paused != true) {
         this.statusico = "pause-circle";
+        this.statustips = "暂停";
       } else {
         this.statusico = "play-circle";
+        this.statustips = "播放";
       }
     },
 
@@ -147,17 +182,24 @@ export default {
       }
       this.$refs.audio.play();
       this.statusico = "pause-circle";
+      this.statustips = "暂停";
     },
     pause() {
       this.$refs.audio.pause();
       this.statusico = "play-circle";
+      this.statustips = "播放";
     },
     play_next() {
       this.getMusicdata();
+      this.back_show = false;
     },
     play_up() {
       //todo
-    }
+    },
+    share() {
+      //todo
+    },
+    settings() {}
   }
 };
 </script>>
@@ -178,6 +220,21 @@ export default {
   height: 100%;
   position: absolute;
   overflow-x: hidden;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 3.5s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
+}
+
+.back_img_box {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  z-index: -99999999;
 }
 
 .header {
@@ -215,7 +272,7 @@ export default {
 .player-bar {
   width: 100%;
   height: 75px;
-  position: absolute;
+  position: fixed;
   bottom: 0;
   background-color: #ffffff;
 }
@@ -302,5 +359,11 @@ export default {
 }
 
 .od_bnt {
+  float: left;
+  margin-right: 30px;
+}
+
+.od_bnt svg {
+  margin-right: 20px;
 }
 </style>
