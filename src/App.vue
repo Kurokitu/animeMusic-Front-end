@@ -154,7 +154,7 @@ export default {
         if (res.data.msg == "ok") {
           this.audio_src = res.data.res.play_url;
           this.$refs.audio.load;
-          this.cover_img = res.data.res.anime_info.logo;
+          this.cover_img = res.data.res.anime_info.logo.replace(/^http/,"https");
           this.songtitle = res.data.res.title;
           this.album = res.data.res.anime_info.title;
           this.back_img_url = res.data.res.anime_info.bg;
