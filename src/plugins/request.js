@@ -9,16 +9,16 @@ import { Service } from "@/plugins/Service";
 //   }
 
 
-export function getMusic() {
-    return Service({
-        url: '/music',
-        method: 'get'
-    });
-}
-
-export function getMusicID(id) {
-    return Service({
-        url: '/music/'+id,
-        method: 'get'
-    });
+export function getMusic(id) {
+    if (!id) {
+        return Service({
+            url: '/music',
+            method: 'get'
+        });
+    } else {
+        return Service({
+            url: '/music/' + id,
+            method: 'get'
+        });
+    }
 }

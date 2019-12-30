@@ -46,6 +46,9 @@
                 <font-awesome-icon slot="reference" :icon="['fas','volume-down']" size="1x" />
               </el-popover>
             </el-tooltip>
+            <el-tooltip class="item" effect="dark" :content="this.playmodetips" placement="top">
+              <font-awesome-icon @click="playmode_toggle()" :icon="['fas', this.playmodeset]" size="1x" />
+            </el-tooltip>
             <el-tooltip class="item" effect="dark" content="收藏" placement="top">
               <font-awesome-icon @click="share()" :icon="['far','heart']" size="1x" />
             </el-tooltip>
@@ -85,6 +88,8 @@ export default {
   name: "app",
   data() {
     return {
+      playmode: "random",
+      playmodeset: "random",
       back_show: false,
       volumevisible: false,
       cover_img: "/img/JLOGO.png",
@@ -101,6 +106,7 @@ export default {
       allplaytime: "NaN:NaN",
       thisid: "",
       statustips: "播放",
+      playmodetips: "随机播放",
       audiovolume: parseInt(localStorage.getItem("audiovolume"))
     };
   },
@@ -149,8 +155,8 @@ export default {
       };
     },
 
-    getMusicdata() {
-      getMusic().then(res => {
+    getMusicdata(id) {
+      getMusic(id).then(res => {
         if (res.data.msg == "ok") {
           this.audio_src = res.data.res.play_url;
           this.$refs.audio.load;
@@ -212,7 +218,12 @@ export default {
         this.statustips = "播放";
         localStorage.removeItem("back_img");
         this.back_show = false;
-        this.getMusicdata();
+        if(this.playmode == "random"){
+          this.getMusicdata();
+        }
+        if(this.playmode == "loop"){
+          this.getMusicdata(this.thisid);
+        }
         //setTimeout((this.back_show = false), 1300);
       }
       if (this.$refs.audio.paused != true) {
@@ -229,6 +240,18 @@ export default {
         this.play();
       } else {
         this.pause();
+      }
+    },
+
+    playmode_toggle() {
+      if (this.playmode == "random") {
+        this.playmode = "loop";
+        this.playmodetips = "单曲循环";
+        this.playmodeset = "undo";
+      } else {
+        this.playmode = "random";
+        this.playmodetips = "随机播放";
+        this.playmodeset = "random";
       }
     },
 
