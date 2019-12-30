@@ -34,13 +34,25 @@
         </div>
         <div class="playtime">
           <div class="od_bnt">
-            <el-tooltip class="item" effect="dark" content="收藏" placement="top-start">
+            <el-tooltip
+              class="item"
+              effect="dark"
+              :content="'音量：'+this.audiovolume+'%'"
+              placement="top-start"
+            >
+              <el-popover placement="top" width="160" v-model="volumevisible">
+                音量：{{ audiovolume+"%" }}
+                <el-slider v-model="audiovolume" @change="changevolume" :show-tooltip="false"></el-slider>
+                <font-awesome-icon slot="reference" :icon="['fas','volume-down']" size="1x" />
+              </el-popover>
+            </el-tooltip>
+            <el-tooltip class="item" effect="dark" content="收藏" placement="top">
               <font-awesome-icon @click="share()" :icon="['far','heart']" size="1x" />
             </el-tooltip>
-            <el-tooltip class="item" effect="dark" content="分享" placement="top-start">
+            <el-tooltip class="item" effect="dark" content="分享" placement="top">
               <font-awesome-icon @click="share()" :icon="['fas','share']" size="1x" />
             </el-tooltip>
-            <el-tooltip class="item" effect="dark" content="设置" placement="top-start">
+            <el-tooltip class="item" effect="dark" content="设置" placement="top">
               <font-awesome-icon @click="settings()" :icon="['fas','cog']" size="1x" />
             </el-tooltip>
           </div>
@@ -50,7 +62,7 @@
           <el-tooltip class="item" effect="dark" content="上一首" placement="top-start">
             <font-awesome-icon @click="play_up()" :icon="['fas','chevron-left']" size="3x" />
           </el-tooltip>
-          <el-tooltip class="item" effect="dark" :content="this.statustips" placement="top-start">
+          <el-tooltip class="item" effect="dark" :content="this.statustips" placement="top">
             <font-awesome-icon
               ref="playbnt"
               @click="play_toggle()"
@@ -58,12 +70,8 @@
               size="3x"
             />
           </el-tooltip>
-          <el-tooltip class="item" effect="dark" content="下一首" placement="top-start">
-            <font-awesome-icon
-              @click="play_next()"
-              :icon="['fas','chevron-right']"
-              size="3x"
-            />
+          <el-tooltip class="item" effect="dark" content="下一首" placement="top-end">
+            <font-awesome-icon @click="play_next()" :icon="['fas','chevron-right']" size="3x" />
           </el-tooltip>
         </div>
       </div>
@@ -78,7 +86,9 @@ export default {
   data() {
     return {
       back_show: false,
+      volumevisible: false,
       cover_img: "/img/JLOGO.png",
+      back_img_url: "",
       back_img: "",
       audio_src: "",
       health: 0,
@@ -90,14 +100,55 @@ export default {
       playtime: "NaN:NaN",
       allplaytime: "NaN:NaN",
       thisid: "",
-      statustips: "播放"
+      statustips: "播放",
+      audiovolume: parseInt(localStorage.getItem("audiovolume"))
     };
   },
-  created() {},
+  created() {
+    localStorage.removeItem("back_img");
+  },
   mounted() {
+    if (!localStorage.getItem("audiovolume")) {
+      localStorage.setItem("audiovolume", parseInt(60));
+      this.$refs.audio.volume =
+        parseInt(localStorage.getItem("audiovolume")) / 100;
+      this.audiovolume = 60;
+    } else {
+      this.volume = parseInt(localStorage.getItem("audiovolume"));
+      this.$refs.audio.volume =
+        parseInt(localStorage.getItem("audiovolume")) / 100;
+    }
     this.getMusicdata();
   },
   methods: {
+    changevolume() {
+      localStorage.setItem("audiovolume", this.audiovolume);
+      this.$refs.audio.volume =
+        parseInt(localStorage.getItem("audiovolume")) / 100;
+    },
+
+    getBase64(url) {
+      //通过构造函数来创建的 img 实例，在赋予 src 值后就会立刻下载图片，相比 createElement() 创建 <img> 省去了 append()，也就避免了文档冗余和污染
+      var Img = new Image(),
+        dataURL = "";
+      Img.src = url;
+      Img.setAttribute("crossOrigin",'anonymous');
+      Img.onload = function() {
+        //要先确保图片完整获取到，这是个异步事件
+        var canvas = document.createElement("canvas"), //创建canvas元素
+          width = Img.width, //确保canvas的尺寸和图片一样
+          height = Img.height;
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(Img, 0, 0, width, height); //将图片绘制到canvas中
+        dataURL = canvas.toDataURL("image/jpeg"); //转换图片为dataURL
+        //this.back_img = dataURL;
+        localStorage.setItem("back_img", dataURL);
+        // eslint-disable-next-line no-console
+        //console.log(this.back_img);
+      };
+    },
+
     getMusicdata() {
       getMusic().then(res => {
         if (res.data.msg == "ok") {
@@ -106,25 +157,35 @@ export default {
           this.cover_img = res.data.res.anime_info.logo;
           this.songtitle = res.data.res.title;
           this.album = res.data.res.anime_info.title;
-          this.back_img = res.data.res.anime_info.bg;
+          this.back_img_url = res.data.res.anime_info.bg;
           this.thisid = res.data.res.id;
           // eslint-disable-next-line no-console
           console.log("ID: " + res.data.res.id);
-          setTimeout(this.back_show = true, 1300);
+          this.back_img = this.getBase64(this.back_img_url);
         }
       });
     },
 
     updateTime(e) {
+      if (!localStorage.getItem("back_img")) {
+        //todo
+      } else {
+        this.back_img = localStorage.getItem("back_img");
+        setTimeout(this.back_show = true, 1000);
+      }
       this.currentTime = e.target.currentTime; //获取audio当前播放时间
       this.loadtime = this.$refs.audio.buffered; //获取加载进度
       this.health = (this.currentTime / this.$refs.audio.duration) * 100;
-      this.loadhealth =
-        (((this.$refs.audio.buffered.end(this.$refs.audio.buffered.length - 1) *
-          100) /
-          this.$refs.audio.duration) *
-          100) /
-        100;
+      if (this.$refs.audio.buffered.length != 0) {
+        this.loadhealth =
+          (((this.$refs.audio.buffered.end(
+            this.$refs.audio.buffered.length - 1
+          ) *
+            100) /
+            this.$refs.audio.duration) *
+            100) /
+          100;
+      }
       this.am =
         Math.floor((this.$refs.audio.duration / 60) % 60) < 10
           ? "0" + Math.floor((this.$refs.audio.duration / 60) % 60)
@@ -146,11 +207,13 @@ export default {
       // eslint-disable-next-line no-constant-condition
       this.playtime = this.ret;
       this.allplaytime = this.aret;
-      if (this.$refs.audio.ended) {
+      if (this.$refs.audio.ended) { //当检测到播放结束时执行动作
         this.statusico = "play-circle";
         this.statustips = "播放";
+        localStorage.removeItem("back_img");
+        this.back_show = false;
         this.getMusicdata();
-        setTimeout(this.back_show = false, 1300);
+        //setTimeout((this.back_show = false), 1300);
       }
       if (this.$refs.audio.paused != true) {
         this.statusico = "pause-circle";
@@ -190,8 +253,9 @@ export default {
       this.statustips = "播放";
     },
     play_next() {
-      this.getMusicdata();
+      localStorage.removeItem("back_img");
       this.back_show = false;
+      this.getMusicdata();
     },
     play_up() {
       //todo
@@ -224,7 +288,7 @@ export default {
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 3.5s;
+  transition: opacity 2s;
 }
 .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
   opacity: 0;
@@ -365,5 +429,6 @@ export default {
 
 .od_bnt svg {
   margin-right: 20px;
+  cursor: pointer;
 }
 </style>
