@@ -1,5 +1,6 @@
 # jjfm
 
+基于 https://github.com/JxiaoC/animeMusic 开发。
 目前仅实现了基础的播放和下一首功能，其他正在完善中。
 
 ## Project setup
