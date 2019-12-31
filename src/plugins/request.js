@@ -22,3 +22,17 @@ export function getMusic(id) {
         });
     }
 }
+
+export function SearchTitle(value) {
+    return Service({
+        url: '/music/search?key='+value,
+        method: 'get'
+    });
+}
+
+export function SearchAnime(value) {
+    return Service({
+        url: '/anime/search?key='+value,
+        method: 'get'
+    });
+}

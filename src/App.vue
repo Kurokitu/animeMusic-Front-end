@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <div @postplayid="getPlay"></div>
     <transition name="fade">
       <div style="z-index:-99999999;" v-if="back_show">
         <div
@@ -11,11 +12,16 @@
     <div class="header">
       <img class="Logo" src="./assets/logo.png" height="100%" alt="Logo" />
       <div id="nav">
-        <router-link to="/">Home</router-link>
-        <router-link to="/about">About</router-link>
+        <router-link to="/">主页</router-link>
+        <router-link to="/search">搜索</router-link>
+        <router-link to="/about">关于</router-link>
       </div>
     </div>
-    <router-view />
+    <div class="view">
+      <router-view @my-event="getMyEvent" ref="childrenmode" />
+      <div style="width: 100%; height: 300px;"></div>
+    </div>
+    <el-backtop bottom="400" visibility-height="80" target=".page-component__scroll .el-scrollbar__wrap"></el-backtop>
     <audio @timeupdate="updateTime" autoplay :src="this.audio_src" ref="audio"></audio>
     <div class="player-bar">
       <div id="progress" @click="clickrunfatbar" ref="runfatbar">
@@ -47,7 +53,11 @@
               </el-popover>
             </el-tooltip>
             <el-tooltip class="item" effect="dark" :content="this.playmodetips" placement="top">
-              <font-awesome-icon @click="playmode_toggle()" :icon="['fas', this.playmodeset]" size="1x" />
+              <font-awesome-icon
+                @click="playmode_toggle()"
+                :icon="['fas', this.playmodeset]"
+                size="1x"
+              />
             </el-tooltip>
             <el-tooltip class="item" effect="dark" content="收藏" placement="top">
               <font-awesome-icon @click="share()" :icon="['far','heart']" size="1x" />
@@ -92,7 +102,7 @@ export default {
       playmodeset: "random",
       back_show: false,
       volumevisible: false,
-      cover_img: "/img/JLOGO.png",
+      cover_img: "/img/logo.png",
       back_img_url: "",
       back_img: "",
       audio_src: "",
@@ -138,7 +148,7 @@ export default {
       var Img = new Image(),
         dataURL = "";
       Img.src = url;
-      Img.setAttribute("crossOrigin",'anonymous');
+      Img.setAttribute("crossOrigin", "anonymous");
       Img.onload = function() {
         //要先确保图片完整获取到，这是个异步事件
         var canvas = document.createElement("canvas"), //创建canvas元素
@@ -160,7 +170,10 @@ export default {
         if (res.data.msg == "ok") {
           this.audio_src = res.data.res.play_url;
           this.$refs.audio.load;
-          this.cover_img = res.data.res.anime_info.logo.replace(/^http/,"https");
+          this.cover_img = res.data.res.anime_info.logo.replace(
+            /^http/,
+            "https"
+          );
           this.songtitle = res.data.res.title;
           this.album = res.data.res.anime_info.title;
           this.back_img_url = res.data.res.anime_info.bg;
@@ -177,7 +190,7 @@ export default {
         //todo
       } else {
         this.back_img = localStorage.getItem("back_img");
-        setTimeout(this.back_show = true, 1000);
+        setTimeout((this.back_show = true), 1000);
       }
       this.currentTime = e.target.currentTime; //获取audio当前播放时间
       this.loadtime = this.$refs.audio.buffered; //获取加载进度
@@ -213,15 +226,16 @@ export default {
       // eslint-disable-next-line no-constant-condition
       this.playtime = this.ret;
       this.allplaytime = this.aret;
-      if (this.$refs.audio.ended) { //当检测到播放结束时执行动作
+      if (this.$refs.audio.ended) {
+        //当检测到播放结束时执行动作
         this.statusico = "play-circle";
         this.statustips = "播放";
         localStorage.removeItem("back_img");
         this.back_show = false;
-        if(this.playmode == "random"){
+        if (this.playmode == "random") {
           this.getMusicdata();
         }
-        if(this.playmode == "loop"){
+        if (this.playmode == "loop") {
           this.getMusicdata(this.thisid);
         }
         //setTimeout((this.back_show = false), 1300);
@@ -260,6 +274,18 @@ export default {
       const barWidth = e.pageX / this.$refs.runfatbar.offsetWidth; // 计算点击位置相对父元素总宽的比例
       this.$refs.runbar.style.width = `${barWidth * 100}%`; // 进度条应所在的比例总宽
       music.currentTime = music.duration * barWidth; // 计算点击时应播放所在的时间
+    },
+
+    getMyEvent: function(id) {
+      this.getPlay(id)
+    },
+
+    getPlay(id) {
+      // eslint-disable-next-line no-console
+      console.log(id);
+      localStorage.removeItem("back_img");
+      this.back_show = false;
+      this.getMusicdata(id);
     },
 
     play() {
@@ -307,6 +333,16 @@ export default {
   height: 100%;
   position: absolute;
   overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+.view {
+  position: absolute;
+  top: 75px;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.6);
+  overflow-y: auto;
 }
 
 .fade-enter-active,
@@ -327,8 +363,10 @@ export default {
 .header {
   width: 100%;
   height: 75px;
-  position: relative;
-  background-color: #ffffff;
+  position: absolute;
+  /* background-color: #ffffff; */
+  background-color: rgba(255, 255, 255, 0.95);
+  z-index: 99999999999;
 }
 
 .Logo {
@@ -359,9 +397,10 @@ export default {
 .player-bar {
   width: 100%;
   height: 75px;
-  position: fixed;
+  position: absolute;
   bottom: 0;
-  background-color: #ffffff;
+  /* background-color: #ffffff; */
+  background-color: rgba(255, 255, 255, 0.95);
 }
 
 .player-bar #progress {
