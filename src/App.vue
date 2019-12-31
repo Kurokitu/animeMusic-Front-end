@@ -365,7 +365,7 @@ export default {
   height: 75px;
   position: absolute;
   /* background-color: #ffffff; */
-  background-color: rgba(255, 255, 255, 0.95);
+  background-color: rgba(255, 255, 255, 0.9);
   z-index: 99999999999;
 }
 
@@ -400,7 +400,7 @@ export default {
   position: absolute;
   bottom: 0;
   /* background-color: #ffffff; */
-  background-color: rgba(255, 255, 255, 0.95);
+  background-color: rgba(255, 255, 255, 0.9);
 }
 
 .player-bar #progress {
