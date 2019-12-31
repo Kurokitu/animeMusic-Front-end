@@ -21,7 +21,11 @@
       <router-view @my-event="getMyEvent" ref="childrenmode" />
       <div style="width: 100%; height: 300px;"></div>
     </div>
-    <el-backtop bottom="400" visibility-height="80" target=".page-component__scroll .el-scrollbar__wrap"></el-backtop>
+    <el-backtop
+      bottom="400"
+      visibility-height="80"
+      target=".page-component__scroll .el-scrollbar__wrap"
+    ></el-backtop>
     <audio @timeupdate="updateTime" autoplay :src="this.audio_src" ref="audio"></audio>
     <div class="player-bar">
       <div id="progress" @click="clickrunfatbar" ref="runfatbar">
@@ -31,12 +35,16 @@
         </div>
       </div>
       <div class="player-control">
-        <img class="cover" :src="cover_img" alt="cover" />
+        <el-image class="cover" :src="cover_img" fit="cover">
+          <div slot="placeholder" class="image-slot">
+            加载中<span class="dot">...</span>
+          </div>
+        </el-image>
         <div class="songinfo">
-          <div class="song-title">
+          <div @click="goSongInfo()" class="song-title">
             <strong>{{ songtitle }}</strong>
           </div>
-          <div class="song-album">{{ album }}</div>
+          <div @click="searchAlbum()" class="song-album">{{ album }}</div>
         </div>
         <div class="playtime">
           <div class="od_bnt">
@@ -137,6 +145,14 @@ export default {
     this.getMusicdata();
   },
   methods: {
+    goSongInfo() {
+      this.$router.push({path:'/song/'+this.thisid});
+    },
+
+    searchAlbum() {
+      this.$router.push({path:'/search/'+ encodeURIComponent(this.album)});
+    },
+
     changevolume() {
       localStorage.setItem("audiovolume", this.audiovolume);
       this.$refs.audio.volume =
@@ -277,7 +293,7 @@ export default {
     },
 
     getMyEvent: function(id) {
-      this.getPlay(id)
+      this.getPlay(id);
     },
 
     getPlay(id) {
@@ -449,9 +465,14 @@ export default {
 }
 
 .player-control .cover {
-  width: auto;
+  width: 180px;
   height: 100%;
   float: left;
+}
+
+.player-control .image-slot {
+  text-align: center;
+  margin: 33px auto;
 }
 
 .songinfo {
@@ -476,6 +497,11 @@ export default {
 
 .song-title {
   font-size: 20px;
+  cursor: pointer;
+}
+
+.song-album {
+  cursor: pointer;
 }
 
 .playtime {

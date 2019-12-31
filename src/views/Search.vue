@@ -62,7 +62,13 @@ export default {
       album: "未知"
     };
   },
-  mounted() {},
+  mounted() {
+    if(this.$route.params.value){
+      this.value = "anime";
+      this.serachinput = decodeURIComponent(this.$route.params.value);
+      this.getSerachdata();
+    }
+  },
   methods: {
     getSerachdata() {
       if (this.value == "title") {
@@ -84,6 +90,13 @@ export default {
       // eslint-disable-next-line no-console
       //console.log(id);
       this.$emit('my-event',id);
+    }
+  },
+  watch: {
+    $route(){
+      this.value = "anime";
+      this.serachinput = decodeURIComponent(this.$route.params.value);
+      this.getSerachdata();
     }
   }
 };
